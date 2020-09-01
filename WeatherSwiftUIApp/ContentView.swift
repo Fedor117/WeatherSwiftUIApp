@@ -11,14 +11,24 @@ import SwiftUI
 struct ContentView: View {
   @State private var input: String = ""
   
+  @ObservedObject var viewModel = WeatherViewModel(service: OpenWeatherMapService())
+  
   var body: some View {
     VStack {
-      TextField("Enter city", text: $input)
+      TextField("Enter city",
+                text: $input,
+                onEditingChanged: { _ in
+                  // do nothing
+                }, onCommit: {
+                  if !self.input.isEmpty {
+                    self.viewModel.fetchWeather(for: self.input)
+                  }
+                })
         .font(.title)
       
       Divider()
 
-      Text(input)
+      Text(viewModel.weatherInfo)
         .font(.body)
     }
     .padding()

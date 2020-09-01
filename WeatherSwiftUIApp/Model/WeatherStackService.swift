@@ -1,18 +1,24 @@
 //
-//  OpenWeatherMapService.swift
+//  WeatherStackService.swift
 //  WeatherSwiftUIApp
 //
-//  Created by Fedor Valiavko on 28/08/2020.
+//  Created by Fedor Valiavko on 01/09/2020.
 //  Copyright © 2020 Fedor Valiavko. All rights reserved.
 //
 
 import Foundation
 
-final class OpenWeatherMapService: WeatherServicing {
+final class WeatherStackService: WeatherServicing {
+  enum Units: String {
+    case metric = "m"
+    case scientific = "s"
+    case fahrenheit = "f"
+  }
+  
   private let decoder = JSONDecoder()
   
   func fetchWeatherData(for city: String, completionHandler: @escaping (Result<String, WeatherServicingError>) -> Void) {
-    let endPoint = "https://api.openweathermap.org/data/2.5/find?q=\(city)&units=metric&appid=\(APIKeys.openWeatherMap.rawValue)"
+    let endPoint = "https://api.weatherstack.com/current?access_key=\(APIKeys.weatherStack)&query=\(city)&units=\(Units.metric.rawValue)"
     
     guard let safeUrlString = endPoint.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
           let endPointUrl = URL(string: safeUrlString) else {
@@ -35,16 +41,18 @@ final class OpenWeatherMapService: WeatherServicing {
       }
       
       do {
-        let weatherList = try self.decoder.decode(OpenWeatherMapContainer.self, from: responseData)
-        guard let weatherInfo = weatherList.list.first else {
+        let weatherContainer = try self.decoder.decode(WeatherStackContainer.self, from: responseData)
+        
+        guard let weatherInfo = weatherContainer.current,
+              let weather = weatherInfo.weather_descriptions?.first,
+              let temperature = weatherInfo.temperature else {
           completionHandler(.failure(.invalidPayload(endPointUrl)))
           return
         }
-        
-        let weather = weatherInfo.weather.first!.main
-        let weatherDescription = "\(String(describing: weather)) \(weatherInfo.main.temp)"
+
+        let weatherDescription = "\(weather) \(temperature) °C"
         completionHandler(.success(weatherDescription))
-        
+
       } catch let error {
         completionHandler(.failure(.forwarded(error)))
       }

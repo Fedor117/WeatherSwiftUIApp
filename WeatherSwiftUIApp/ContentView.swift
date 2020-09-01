@@ -11,7 +11,7 @@ import SwiftUI
 struct ContentView: View {
   @State private var input: String = ""
   
-  @ObservedObject var viewModel = WeatherViewModel(service: OpenWeatherMapService())
+  @ObservedObject var viewModel = WeatherViewModel(service: WeatherFallbackService(services: [WeatherStackService(), OpenWeatherMapService()]))
   
   var body: some View {
     VStack {

@@ -11,6 +11,7 @@ import Foundation
 enum WeatherServicingError: Error {
   case invalidUrl(String)
   case invalidPayload(URL)
+  case servicesUnavailable(String)
   case forwarded(Error)
 }
 
